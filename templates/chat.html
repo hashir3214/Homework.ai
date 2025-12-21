@@ -156,6 +156,17 @@
     </style>
 </head>
 <body>
+    <script>const express = require('express')
+const app = express()
+const port = process.env.PORT || 4000
+
+app.get('/', (req, res) => {
+  res.send('Hello World!')
+})
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
+})</script>
     <div class="chat-container">
         <div class="chat-header">
             <h2><i class="fas fa-robot"></i> Student Assistant AI</h2>
@@ -256,3 +267,4 @@
     </script>
 </body>
 </html>
+
