@@ -6,6 +6,11 @@
     <title>Student AI Assistant</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        const express = require('express')
+        const app = express()
+        const port = process.env.PORT || 4000
+    </script>
     <script async crossorigin="anonymous" data-clerk-publishable-key="pk_test_cG9ldGljLXBsYXR5cHVzLTQ2LmNsZXJrLmFjY291bnRzLmRldiQ" src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
     <style>
         body {
@@ -156,17 +161,7 @@
     </style>
 </head>
 <body>
-    <script>const express = require('express')
-const app = express()
-const port = process.env.PORT || 4000
-
-app.get('/', (req, res) => {
-  res.send('Hello World!')
-})
-
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
-})</script>
+    
     <div class="chat-container">
         <div class="chat-header">
             <h2><i class="fas fa-robot"></i> Student Assistant AI</h2>
@@ -267,4 +262,5 @@ app.listen(port, () => {
     </script>
 </body>
 </html>
+
 
