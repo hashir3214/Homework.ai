@@ -1,40 +1,27 @@
 from flask import Flask, render_template, request, Response, stream_with_context
-from flask_sqlalchflaemy import SQLAlchemy
-from flask_sqlalchemy import SQLAlchemy
+import json
 from groq import Groq
 import os
 from datetime import datetime
-# flask_sqlalchflaemy
-app = Flask(__name__)
 app = Flask(__name__, template_folder='.')
 
 # Use environment variable for API key for Render security, fallback to hardcoded for local
 client = Groq(api_key=os.environ.get("GROQ_API_KEY", "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"))
 
-# Database setup
-# Use SQLite for local, PostgreSQL for Render
-database_url = os.environ.get("DATABASE_URL", "sqlite:///users.db")
-if database_url.startswith("postgres://"):
-    database_url = database_url.replace("postgres://", "postgresql://", 1)
+DB_FILE = "local_db.json"
 
-app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-db = SQLAlchemy(app)
+def load_db():
+    if not os.path.exists(DB_FILE):
+        return {"users": {}, "chats": []}
+    try:
+        with open(DB_FILE, 'r') as f:
+            return json.load(f)
+    except:
+        return {"users": {}, "chats": []}
 
-class User(db.Model):
-    user_id = db.Column(db.String(255), primary_key=True)
-    tokens = db.Column(db.Integer, default=10000)
-    is_paid = db.Column(db.Integer, default=0)
-
-class ChatHistory(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(255), nullable=False)
-    role = db.Column(db.String(50), nullable=False)
-    content = db.Column(db.Text, nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-
-with app.app_context():
-    db.create_all()
+def save_db(data):
+    with open(DB_FILE, 'w') as f:
+        json.dump(data, f, indent=2)
 
 @app.route("/")
 def index():
@@ -54,8 +41,9 @@ def get_history():
     if not user_id:
         return {"error": "No user_id provided"}, 400
     
-    chats = ChatHistory.query.filter_by(user_id=user_id).order_by(ChatHistory.timestamp).all()
-    return {"chats": [{"role": c.role, "content": c.content} for c in chats]}
+    data = load_db()
+    user_chats = [c for c in data["chats"] if c["user_id"] == user_id]
+    return {"chats": [{"role": c["role"], "content": c["content"]} for c in user_chats]}
 
 @app.route("/get_response", methods=["POST"])
 def get_response():
@@ -65,13 +53,14 @@ def get_response():
     if not user_id:
         return Response("Error: User not authenticated.", mimetype='text/plain')
 
-    user = User.query.get(user_id)
-    if not user:
-        user = User(user_id=user_id, tokens=10000, is_paid=0)
-        db.session.add(user)
-        db.session.commit()
+    data = load_db()
+    if user_id not in data["users"]:
+        data["users"][user_id] = {"tokens": 10000, "is_paid": 0}
+        save_db(data)
     
-    if user.tokens <= 0:
+    user = data["users"][user_id]
+    
+    if user["tokens"] <= 0:
         return Response("Error: Token limit reached. Please upgrade to Pro for more tokens.", mimetype='text/plain')
     
     def generate():
@@ -80,10 +69,14 @@ def get_response():
         output_text = ""
 
         # Save user message
-        with app.app_context():
-            user_msg = ChatHistory(user_id=user_id, role="user", content=user_input)
-            db.session.add(user_msg)
-            db.session.commit()
+        data = load_db()
+        data["chats"].append({
+            "user_id": user_id, 
+            "role": "user", 
+            "content": user_input,
+            "timestamp": str(datetime.utcnow())
+        })
+        save_db(data)
 
         try:
             completion = client.chat.completions.create(
@@ -113,13 +106,17 @@ def get_response():
             output_tokens = len(output_text) // 4
             total_cost = input_tokens + output_tokens
             
-            with app.app_context():
-                # Save assistant message and update tokens
-                bot_msg = ChatHistory(user_id=user_id, role="assistant", content=output_text)
-                db.session.add(bot_msg)
-                current_user = User.query.get(user_id)
-                current_user.tokens -= total_cost
-                db.session.commit()
+            # Save assistant message and update tokens
+            data = load_db()
+            data["chats"].append({
+                "user_id": user_id, 
+                "role": "assistant", 
+                "content": output_text,
+                "timestamp": str(datetime.utcnow())
+            })
+            if user_id in data["users"]:
+                data["users"][user_id]["tokens"] -= total_cost
+            save_db(data)
 
         except Exception as e:
             yield f"Error generating response: {str(e)}"
@@ -131,11 +128,11 @@ def upgrade_user():
     # Internal endpoint to simulate upgrading a user (in production, call this via webhook)
     user_id = request.form.get("user_id")
     if user_id:
-        user = User.query.get(user_id)
-        if user:
-            user.tokens += 90000
-            user.is_paid = 1
-            db.session.commit()
+        data = load_db()
+        if user_id in data["users"]:
+            data["users"][user_id]["tokens"] += 90000
+            data["users"][user_id]["is_paid"] = 1
+            save_db(data)
         return "User upgraded"
     return "No user_id provided", 400
 
