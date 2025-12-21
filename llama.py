@@ -85,4 +85,7 @@ def get_response():
     return Response(stream_with_context(generate()), mimetype='text/plain')
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Get port from environment variable (Render provides this)
+    port = int(os.environ.get("PORT", 5000))
+    # Bind to 0.0.0.0 to make it accessible externally
+    app.run(host="0.0.0.0", port=port, debug=False)
