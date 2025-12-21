@@ -1,5 +1,0 @@
-flask
-groq
-gunicorn
-json
-psycopg2-binary
