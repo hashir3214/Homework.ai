@@ -14,13 +14,9 @@
             --dark-color: #333;
             --light-color: #f4f7f6;
             --white-color: #ffffff;
-            --gradient-start: #6c5ce7;
-            --gradient-end: #a29bfe;
         }
 
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             font-family: 'Poppins', sans-serif;
@@ -29,7 +25,6 @@
             background-color: var(--light-color);
             color: var(--dark-color);
             line-height: 1.6;
-            overflow-x: hidden;
         }
 
         .container {
@@ -39,8 +34,8 @@
         }
 
         header {
-            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
-            color: var(--white-color);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
             padding: 1rem 0;
             position: sticky;
             top: 0;
@@ -57,14 +52,10 @@
         header .logo {
             font-size: 2.2rem;
             font-weight: 700;
-            text-decoration: none;
-            color: var(--white-color);
-            letter-spacing: -1px;
+            color: white;
         }
 
-        header .logo span {
-            color: var(--secondary-color);
-        }
+        header .logo span { color: #dfe6e9; }
 
         nav ul {
             list-style: none;
@@ -73,106 +64,55 @@
             display: flex;
         }
 
-        nav ul li {
-            margin-left: 30px;
-        }
+        nav ul li { margin-left: 30px; }
 
         nav ul li a {
-            color: var(--white-color);
+            color: white;
             text-decoration: none;
             font-weight: 500;
-            font-size: 1.1rem;
-            transition: color 0.3s ease, transform 0.3s ease;
-            position: relative;
+            transition: opacity 0.3s;
         }
 
-        nav ul li a::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            display: block;
-            margin-top: 5px;
-            right: 0;
-            background: var(--white-color);
-            transition: width 0.3s ease;
-        }
-
-        nav ul li a:hover::after {
-            width: 100%;
-            left: 0;
-            background: var(--white-color);
-        }
-
-        nav ul li a:hover {
-            transform: translateY(-2px);
-        }
+        nav ul li a:hover { opacity: 0.8; }
 
         .hero {
-            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
-            color: var(--white-color);
-            padding: 100px 0 150px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 100px 0;
             text-align: center;
-            position: relative;
-            overflow: hidden;
-            clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: rgba(255, 255, 255, 0.05);
-            transform: rotate(45deg);
-            z-index: 0;
-        }
-
-        .hero .container {
-            position: relative;
-            z-index: 1;
         }
 
         .hero h1 {
             font-size: 3.5rem;
             margin-bottom: 1rem;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
         .hero p {
             font-size: 1.2rem;
             margin-bottom: 2rem;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
             opacity: 0.9;
         }
 
         .btn {
             display: inline-block;
-            background-color: var(--white-color);
+            background: white;
             color: var(--primary-color);
             padding: 15px 40px;
             border-radius: 50px;
             text-decoration: none;
             font-weight: 700;
             font-size: 1.1rem;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
             border: none;
             cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            transition: transform 0.3s;
         }
 
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
-        }
+        .btn:hover { transform: translateY(-3px); }
 
         .features {
             padding: 80px 0;
-            background: var(--white-color);
+            background: white;
         }
 
         .features-grid {
@@ -187,15 +127,10 @@
             padding: 40px 30px;
             border-radius: 20px;
             text-align: center;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(0,0,0,0.05);
+            transition: transform 0.3s;
         }
 
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(108, 92, 231, 0.15);
-            background: var(--white-color);
-        }
+        .feature-card:hover { transform: translateY(-10px); }
 
         .feature-icon {
             font-size: 3rem;
@@ -203,21 +138,13 @@
             margin-bottom: 20px;
         }
 
-        .feature-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-            color: var(--dark-color);
-        }
-
         footer {
             background: var(--dark-color);
-            color: var(--white-color);
+            color: white;
             text-align: center;
             padding: 2rem 0;
-            margin-top: auto;
         }
 
-        /* Auth Modal */
         .modal {
             display: none;
             position: fixed;
@@ -231,9 +158,7 @@
             align-items: center;
         }
 
-        .modal.active {
-            display: flex;
-        }
+        .modal.active { display: flex; }
 
         .modal-content {
             background: white;
@@ -241,12 +166,23 @@
             border-radius: 20px;
             max-width: 400px;
             width: 90%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
         }
 
         .modal-content h2 {
             margin-top: 0;
             color: var(--primary-color);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: #999;
         }
 
         .form-group {
@@ -257,12 +193,13 @@
             display: block;
             margin-bottom: 5px;
             font-weight: 500;
+            text-align: left;
         }
 
         .form-group input {
             width: 100%;
             padding: 12px;
-            border: 2px solid var(--light-color);
+            border: 2px solid #dfe6e9;
             border-radius: 10px;
             font-family: 'Poppins', sans-serif;
             font-size: 1rem;
@@ -282,33 +219,31 @@
         .auth-toggle a {
             color: var(--primary-color);
             cursor: pointer;
-            text-decoration: none;
+            text-decoration: underline;
         }
 
-        .close-modal {
-            float: right;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #999;
+        .message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
         }
 
         .error-message {
-            color: #e74c3c;
-            margin-top: 10px;
-            font-size: 0.9rem;
+            background: #fee;
+            color: #c00;
         }
 
         .success-message {
-            color: #27ae60;
-            margin-top: 10px;
-            font-size: 0.9rem;
+            background: #efe;
+            color: #060;
         }
     </style>
 </head>
 <body>
     <header>
         <div class="container">
-            <a href="/" class="logo">Homework<span>.AI</span></a>
+            <div class="logo">Homework<span>.AI</span></div>
             <nav>
                 <ul>
                     <li><a href="/">Home</a></li>
@@ -348,10 +283,9 @@
         </div>
     </section>
 
-    <!-- Auth Modal -->
     <div id="authModal" class="modal">
         <div class="modal-content">
-            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <button class="close-modal" onclick="closeModal()">&times;</button>
             <h2 id="modalTitle">Sign Up</h2>
             <form id="authForm" onsubmit="handleAuth(event)">
                 <div class="form-group">
@@ -362,7 +296,7 @@
                     <label for="password">Password</label>
                     <input type="password" id="password" required minlength="6">
                 </div>
-                <button type="submit" class="btn" style="width: 100%; margin-top: 10px;">Continue</button>
+                <button type="submit" class="btn" style="width: 100%;">Continue</button>
                 <div id="authMessage"></div>
             </form>
             <div class="auth-toggle">
@@ -382,21 +316,24 @@
         const SUPABASE_URL = 'https://vdjuotjaweofwbvvcyfb.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZkanVvdGphd2VvZndidnZjeWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYzODM3MDMsImV4cCI6MjA4MTk1OTcwM30.elUt29UYIbQhz7bXeEFr_SUhfeDHR9k3RP1jgCVQVok';
         
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         let isSignUp = true;
 
-        async function checkUser() {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                window.location.href = '/dashboard';
+        window.addEventListener('load', async () => {
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (session) {
+                    window.location.href = '/dashboard';
+                }
+            } catch (err) {
+                console.error('Error:', err);
             }
-        }
-
-        window.addEventListener('load', checkUser);
-
-        document.getElementById('auth-btn').addEventListener('click', () => {
-            document.getElementById('authModal').classList.add('active');
+            
+            document.getElementById('auth-btn').addEventListener('click', () => {
+                document.getElementById('authModal').classList.add('active');
+            });
         });
 
         function closeModal() {
@@ -426,24 +363,21 @@
 
             try {
                 if (isSignUp) {
-                    const { data, error } = await supabase.auth.signUp({
-                        email,
-                        password,
-                        options: {
-                            emailRedirectTo: window.location.origin + '/auth/callback'
-                        }
+                    const { data, error } = await supabaseClient.auth.signUp({
+                        email: email,
+                        password: password
                     });
 
                     if (error) throw error;
                     
-                    messageEl.innerHTML = '<div class="success-message">Check your email to confirm your account!</div>';
+                    messageEl.innerHTML = '<div class="success-message">Success! Redirecting...</div>';
                     setTimeout(() => {
                         window.location.href = '/dashboard';
-                    }, 2000);
+                    }, 1000);
                 } else {
-                    const { data, error } = await supabase.auth.signInWithPassword({
-                        email,
-                        password
+                    const { data, error } = await supabaseClient.auth.signInWithPassword({
+                        email: email,
+                        password: password
                     });
 
                     if (error) throw error;
