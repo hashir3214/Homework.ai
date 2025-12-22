@@ -1,14 +1,15 @@
+
+
+
 from flask import Flask, render_template, request, Response, stream_with_context, jsonify
 from groq import Groq
 import os
 
-# Default Flask configuration - looks for templates in 'templates' folder
 app = Flask(__name__)
 
-# Use environment variable for API key for Render security, fallback to hardcoded for local
 client = Groq(api_key=os.environ.get("GROQ_API_KEY", "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"))
 
-# In-memory storage for chat history (Replaces SQL Database)
+# In-memory storage for chat history
 # Structure: { "user_id": [ {"role": "user", "content": "message"}, ... ] }
 chat_history_db = {}
 
@@ -24,13 +25,17 @@ def dashboard():
 def chat():
     return render_template("chat.html")
 
+@app.route("/auth/callback")
+def auth_callback():
+    # Supabase will redirect here after authentication
+    return render_template("dashboard.html")
+
 @app.route("/get_history")
 def get_history():
     user_id = request.args.get("user_id")
     if not user_id:
         return jsonify({"chats": []})
     
-    # Retrieve history from memory
     history = chat_history_db.get(user_id, [])
     return jsonify({"chats": history})
 
@@ -43,13 +48,11 @@ def get_response():
         return Response("Error: No message provided.", mimetype='text/plain', status=400)
     
     def generate():
-        # Save user message to in-memory history
         if user_id:
             if user_id not in chat_history_db:
                 chat_history_db[user_id] = []
             chat_history_db[user_id].append({"role": "user", "content": user_input})
 
-        # Prepare messages for the API, including history
         conversation_history = chat_history_db.get(user_id, [])
         
         messages_for_api = [
@@ -76,7 +79,6 @@ def get_response():
                 output_text += content
                 yield content
             
-            # Save the full bot response to history
             if user_id:
                 chat_history_db[user_id].append({"role": "assistant", "content": output_text})
 
@@ -86,7 +88,5 @@ def get_response():
     return Response(stream_with_context(generate()), mimetype='text/plain')
 
 if __name__ == "__main__":
-    # Get port from environment variable (Render provides this)
     port = int(os.environ.get("PORT", 5000))
-    # Bind to 0.0.0.0 to make it accessible externally
     app.run(host="0.0.0.0", port=port, debug=False)
