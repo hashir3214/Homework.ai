@@ -3,14 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script>const express = require('express')
-const app = express()
-const port = process.env.PORT || 4000
-</script>
     <title>Homework.AI - Your Ultimate Study Partner</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script async crossorigin="anonymous" data-clerk-publishable-key="pk_test_cG9ldGljLXBsYXR5cHVzLTQ2LmNsZXJrLmFjY291bnRzLmRldiQ" src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --primary-color: #6c5ce7;
@@ -22,11 +18,14 @@ const port = process.env.PORT || 4000
             --gradient-end: #a29bfe;
         }
 
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Poppins', sans-serif;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
             background-color: var(--light-color);
             color: var(--dark-color);
             line-height: 1.6;
@@ -162,6 +161,8 @@ const port = process.env.PORT || 4000
             font-size: 1.1rem;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            border: none;
+            cursor: pointer;
         }
 
         .btn:hover {
@@ -169,7 +170,6 @@ const port = process.env.PORT || 4000
             box-shadow: 0 15px 30px rgba(0,0,0,0.2);
         }
 
-        /* Features Section */
         .features {
             padding: 80px 0;
             background: var(--white-color);
@@ -216,6 +216,93 @@ const port = process.env.PORT || 4000
             padding: 2rem 0;
             margin-top: auto;
         }
+
+        /* Auth Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--light-color);
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .auth-toggle {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+        }
+
+        .auth-toggle a {
+            color: var(--primary-color);
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .close-modal {
+            float: right;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        .success-message {
+            color: #27ae60;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -235,7 +322,7 @@ const port = process.env.PORT || 4000
         <div class="container">
             <h1>Master Your Studies with AI</h1>
             <p>Your intelligent study companion. Get instant help, clear explanations, and ace your homework with the power of AI.</p>
-            <a href="javascript:void(0)" id="auth-btn" class="btn">Start Chatting Now <i class="fas fa-arrow-right"></i></a>
+            <button id="auth-btn" class="btn">Start Chatting Now <i class="fas fa-arrow-right"></i></button>
         </div>
     </section>
 
@@ -261,25 +348,112 @@ const port = process.env.PORT || 4000
         </div>
     </section>
 
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Sign Up</h2>
+            <form id="authForm" onsubmit="handleAuth(event)">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required minlength="6">
+                </div>
+                <button type="submit" class="btn" style="width: 100%; margin-top: 10px;">Continue</button>
+                <div id="authMessage"></div>
+            </form>
+            <div class="auth-toggle">
+                <span id="toggleText">Already have an account?</span>
+                <a id="toggleLink" onclick="toggleAuthMode()">Sign In</a>
+            </div>
+        </div>
+    </div>
+
     <footer>
         <div class="container">
             <p>&copy; 2023 Homework.AI. All rights reserved.</p>
         </div>
     </footer>
+
     <script>
-        window.addEventListener("load", async function () {
-            await Clerk.load();
-            if (Clerk.user) {
-                window.location.href = "/dashboard";
-            } else {
-                const btn = document.getElementById("auth-btn");
-                btn.addEventListener("click", () => {
-                    Clerk.openSignUp();
-                });
+        const SUPABASE_URL = 'https://vdjuotjaweofwbvvcyfb.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZkanVvdGphd2VvZndidnZjeWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ5MDY2NjEsImV4cCI6MjA1MDQ4MjY2MX0.JwrFtxU3lWYNIdxgpF2LQU1Iq2M38NF4K88CcyVGYF8';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let isSignUp = true;
+
+        async function checkUser() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                window.location.href = '/dashboard';
             }
+        }
+
+        window.addEventListener('load', checkUser);
+
+        document.getElementById('auth-btn').addEventListener('click', () => {
+            document.getElementById('authModal').classList.add('active');
         });
+
+        function closeModal() {
+            document.getElementById('authModal').classList.remove('active');
+            document.getElementById('authMessage').innerHTML = '';
+        }
+
+        function toggleAuthMode() {
+            isSignUp = !isSignUp;
+            if (isSignUp) {
+                document.getElementById('modalTitle').innerText = 'Sign Up';
+                document.getElementById('toggleText').innerText = 'Already have an account?';
+                document.getElementById('toggleLink').innerText = 'Sign In';
+            } else {
+                document.getElementById('modalTitle').innerText = 'Sign In';
+                document.getElementById('toggleText').innerText = "Don't have an account?";
+                document.getElementById('toggleLink').innerText = 'Sign Up';
+            }
+            document.getElementById('authMessage').innerHTML = '';
+        }
+
+        async function handleAuth(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const messageEl = document.getElementById('authMessage');
+
+            try {
+                if (isSignUp) {
+                    const { data, error } = await supabase.auth.signUp({
+                        email,
+                        password,
+                        options: {
+                            emailRedirectTo: window.location.origin + '/auth/callback'
+                        }
+                    });
+
+                    if (error) throw error;
+                    
+                    messageEl.innerHTML = '<div class="success-message">Check your email to confirm your account!</div>';
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 2000);
+                } else {
+                    const { data, error } = await supabase.auth.signInWithPassword({
+                        email,
+                        password
+                    });
+
+                    if (error) throw error;
+                    
+                    window.location.href = '/dashboard';
+                }
+            } catch (error) {
+                messageEl.innerHTML = `<div class="error-message">${error.message}</div>`;
+            }
+        }
     </script>
 </body>
 </html>
-
-
