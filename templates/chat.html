@@ -6,12 +6,7 @@
     <title>Student AI Assistant</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script>
-        const express = require('express')
-        const app = express()
-        const port = process.env.PORT || 4000
-    </script>
-    <script async crossorigin="anonymous" data-clerk-publishable-key="pk_test_cG9ldGljLXBsYXR5cHVzLTQ2LmNsZXJrLmFjY291bnRzLmRldiQ" src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -58,12 +53,52 @@
             padding: 8px 15px;
             border-radius: 20px;
             transition: background 0.3s;
+            margin-right: 15px;
         }
         .home-btn:hover {
             background: rgba(255,255,255,0.3);
         }
-        #user-button {
-            margin-left: 15px;
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .user-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: white;
+            color: #6c5ce7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            position: relative;
+        }
+        .dropdown {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            padding: 10px 0;
+            min-width: 150px;
+            display: none;
+            z-index: 100;
+        }
+        .dropdown.active {
+            display: block;
+        }
+        .dropdown-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            color: #333;
+            transition: background 0.2s;
+        }
+        .dropdown-item:hover {
+            background: #f0f2f5;
         }
         .chat-box {
             flex: 1;
@@ -165,9 +200,14 @@
     <div class="chat-container">
         <div class="chat-header">
             <h2><i class="fas fa-robot"></i> Student Assistant AI</h2>
-            <div style="display: flex; align-items: center;">
+            <div class="user-menu">
                 <a href="/dashboard" class="home-btn"><i class="fas fa-home"></i> Dashboard</a>
-                <div id="user-button"></div>
+                <div class="user-avatar" id="userAvatar" onclick="toggleDropdown()">U
+                    <div class="dropdown" id="userDropdown">
+                        <div class="dropdown-item" id="userEmail"></div>
+                        <div class="dropdown-item" onclick="handleSignOut()"><i class="fas fa-sign-out-alt"></i> Sign Out</div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="chat-box" id="chatBox">
@@ -180,16 +220,49 @@
     </div>
 
     <script>
-        window.addEventListener("load", async function () {
-            await Clerk.load();
-            if (!Clerk.user) {
-                window.location.href = "/";
-            } else {
-                const userButtonDiv = document.getElementById("user-button");
-                Clerk.mountUserButton(userButtonDiv);
-                loadChatHistory(Clerk.user.id);
+        const SUPABASE_URL = 'https://vdjuotjaweofwbvvcyfb.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZkanVvdGphd2VvZndidnZjeWZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ5MDY2NjEsImV4cCI6MjA1MDQ4MjY2MX0.JwrFtxU3lWYNIdxgpF2LQU1Iq2M38NF4K88CcyVGYF8';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let currentUser = null;
+
+        async function checkAuth() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                window.location.href = '/';
+                return;
+            }
+            currentUser = user;
+            displayUserInfo(user);
+            loadChatHistory(user.id);
+        }
+
+        function displayUserInfo(user) {
+            const email = user.email;
+            const initial = email.charAt(0).toUpperCase();
+            
+            document.getElementById('userAvatar').textContent = initial;
+            document.getElementById('userEmail').textContent = email;
+        }
+
+        async function handleSignOut() {
+            await supabase.auth.signOut();
+            window.location.href = '/';
+        }
+
+        function toggleDropdown() {
+            document.getElementById('userDropdown').classList.toggle('active');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.user-avatar')) {
+                document.getElementById('userDropdown').classList.remove('active');
             }
         });
+
+        window.addEventListener('load', checkAuth);
 
         async function loadChatHistory(userId) {
             try {
@@ -197,7 +270,6 @@
                 const data = await response.json();
                 const chatBox = document.getElementById('chatBox');
                 
-                // Clear default message if history exists
                 if (data.chats && data.chats.length > 0) {
                     chatBox.innerHTML = ''; 
                     data.chats.forEach(chat => {
@@ -212,18 +284,21 @@
         }
 
         async function sendMessage() {
+            if (!currentUser) {
+                alert('Please sign in to send messages');
+                return;
+            }
+
             const input = document.getElementById('userInput');
             const chatBox = document.getElementById('chatBox');
             const text = input.value.trim();
             
             if (!text) return;
 
-            // Add user message
             chatBox.innerHTML += `<div class="message user-message">${text}</div>`;
             input.value = '';
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // Create bot message placeholder
             const botMsgDiv = document.createElement('div');
             botMsgDiv.className = 'message bot-message';
             botMsgDiv.innerText = '...';
@@ -232,7 +307,7 @@
 
             const formData = new FormData();
             formData.append('msg', text);
-            if (Clerk.user) formData.append('user_id', Clerk.user.id);
+            formData.append('user_id', currentUser.id);
 
             try {
                 const response = await fetch('/get_response', {
@@ -262,5 +337,4 @@
     </script>
 </body>
 </html>
-
 
