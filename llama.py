@@ -2,7 +2,8 @@ from flask import Flask, render_template, request, Response, stream_with_context
 from groq import Groq
 import os
 
-app = Flask(__name__, template_folder=os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Default Flask configuration - looks for templates in 'templates' folder
+app = Flask(__name__)
 
 # Use environment variable for API key for Render security, fallback to hardcoded for local
 client = Groq(api_key=os.environ.get("GROQ_API_KEY", "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"))
