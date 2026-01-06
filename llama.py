@@ -7,7 +7,7 @@ import os
 
 app = Flask(__name__)
 
-client = Groq(api_key=os.environ.get("GROQ_API_KEY", "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"))
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 # In-memory storage for chat history
 # Structure: { "user_id": [ {"role": "user", "content": "message"}, ... ] }
